@@ -1,29 +1,49 @@
 import axios from 'axios';
 
+// Get API base URL from environment variables
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+
+console.log('API Base URL:', API_BASE_URL); // Debug log
+
 const api = axios.create({
-  baseURL: 'https://evertales-ai-production.up.railway.app/api',
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
-// attach JWT token to every request if present
+// Interceptor for JWT token
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
 
-// if the token is invalid/expired, clear it and bounce to login
+// Response interceptor for 401 errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
-      }
+      localStorage.removeItem('user');
+      window.location.href = '/login';
     }
     return Promise.reject(error);
   }
 );
+
+export const storyAPI = {
+  getAll: () => api.get('/stories'),
+  getById: (id) => api.get(`/stories/${id}`),
+  getPublicById: (id) => api.get(`/stories/public/${id}`),
+  create: (data) => api.post('/stories', data),
+  update: (id, data) => api.put(`/stories/${id}`, data),
+  delete: (id) => api.delete(`/stories/${id}`),
+  search: (query) => api.get(`/stories/search?q=${query}`),
+  getPublic: () => api.get('/stories/public'),
+};
 
 export const authAPI = {
   register: (data) => api.post('/register', data),
@@ -33,28 +53,12 @@ export const authAPI = {
   changePassword: (data) => api.put('/change-password', data),
 };
 
-export const storyAPI = {
-  getAll: () => api.get('/stories'),
-  getById: (id) => api.get(`/stories/${id}`),
-  create: (data) => api.post('/stories', data),
-  update: (id, data) => api.put(`/stories/${id}`, data),
-  delete: (id) => api.delete(`/stories/${id}`),
-  search: (q) => api.get(`/stories/search?q=${encodeURIComponent(q)}`),
-  uploadMedia: (storyId, formData) =>
-    api.post(`/stories/${storyId}/media`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
-  deleteMedia: (mediaId) => api.delete(`/stories/media/${mediaId}`),
-  getPublic: () => api.get('/stories/public'),
-  getPublicById: (id) => api.get(`/stories/public/${id}`),
-};
-
 export const categoryAPI = {
   getAll: () => api.get('/categories'),
 };
 
-export const aiAPI = {
-  generateTags: (text) => api.post('/generate-tags', { text }),
+export const tagAPI = {
+  generate: (text) => api.post('/generate-tags', { text }),
 };
 
 export default api;
