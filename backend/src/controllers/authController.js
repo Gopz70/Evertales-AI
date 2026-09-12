@@ -48,9 +48,13 @@ async function register(req, res) {
     const token = jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
     res.status(201).json({ token, user: { user_id: userId, name, email } });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error during registration' });
-  }
+  console.error("REGISTER ERROR:", err);
+
+  res.status(500).json({
+    message: err.message,
+    stack: err.stack
+  });
+}
 }
 
 async function login(req, res) {
