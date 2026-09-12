@@ -10,3 +10,8 @@ router.put('/profile', authMiddleware, authController.updateProfile);
 router.put('/change-password', authMiddleware, authController.changePassword);
 
 module.exports = router;
+
+router.post('/register', (req, res, next) => {
+  console.log('REGISTER HIT');
+  next();
+}, authController.register);
