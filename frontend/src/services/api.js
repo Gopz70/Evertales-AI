@@ -61,4 +61,9 @@ export const tagAPI = {
   generate: (text) => api.post('/generate-tags', { text }),
 };
 
+// Export aiAPI as alias for tagAPI (for AI tagging feature)
+export const aiAPI = {
+  generate: (text) => api.post('/generate-tags', { text }),
+};
+
 export default api;
